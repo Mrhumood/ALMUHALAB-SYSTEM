@@ -3,16 +3,43 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'App')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', config('app.name', 'App'))</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
   <div class="container">
-    <a class="navbar-brand" href="{{ url('/') }}">Case System</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav me-auto">
+    <a class="navbar-brand" href="{{ url('/') }}">{{ config('app.name', 'Case System') }}</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item"><a class="nav-link" href="{{ route('service-requests.index') }}">Service Requests</a></li>
+      </ul>
+
+      <ul class="navbar-nav ms-auto">
+        @guest
+            <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ route('register') }}">Register</a></li>
+        @else
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ Auth::user()->name }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a></li>
+                    <li>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button class="dropdown-item" type="submit">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+        @endguest
       </ul>
     </div>
   </div>
@@ -25,6 +52,7 @@
     @if(session('error'))
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+
     @yield('content')
 </div>
 
