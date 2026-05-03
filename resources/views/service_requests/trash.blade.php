@@ -38,9 +38,7 @@
                         <tr>
                             <td class="fw-bold text-muted">{{ $item->id }}</td>
                             <td>
-                                <a href="{{ route('service-requests.show', $item) }}" class="text-decoration-none">
-                                    {{ Str::limit($item->title, 80) }}
-                                </a>
+                                <span class="fw-semibold">{{ Str::limit($item->title, 80) }}</span>
                             </td>
                             <td class="text-muted small">{{ $item->deleted_at->format('M d, Y H:i') }}</td>
                             <td>
