@@ -9,9 +9,14 @@
             <h1 class="h2 mb-0">Service Requests</h1>
             <p class="text-muted small mt-1">Manage and track all service requests</p>
         </div>
-        <a href="{{ route('service-requests.create') }}" class="btn btn-primary btn-lg">
-            <i class="bi bi-plus-circle me-2"></i>New Request
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{{ route('service-requests.create') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle me-2"></i>New Request
+            </a>
+            <a href="{{ route('service-requests.trash') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="bi bi-trash me-2"></i>Trash
+            </a>
+        </div>
     </div>
 
     @if($items->isEmpty())

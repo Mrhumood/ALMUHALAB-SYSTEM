@@ -84,11 +84,8 @@ class ServiceRequestController extends Controller
 
     public function destroy(ServiceRequest $serviceRequest)
     {
+        // perform a soft delete (move to trash). Do NOT remove attachment files here so they can be restored.
         $data = $serviceRequest->toArray();
-
-        if ($serviceRequest->attachment_path) {
-            try { \Storage::disk('public')->delete($serviceRequest->attachment_path); } catch (\Exception $e) {}
-        }
 
         $serviceRequest->delete();
 
@@ -100,6 +97,54 @@ class ServiceRequestController extends Controller
             'changes' => $data,
         ]);
 
-        return redirect()->route('service-requests.index')->with('success', 'Deleted.');
+        return redirect()->route('service-requests.index')->with('success', 'Moved to trash.');
+    }
+
+    // show trashed (soft-deleted) service requests
+    public function trash()
+    {
+        $items = ServiceRequest::onlyTrashed()->orderBy('deleted_at', 'desc')->get();
+        return view('service_requests.trash', ['items' => $items]);
+    }
+
+    // restore a trashed request
+    public function restore($id)
+    {
+        $sr = ServiceRequest::onlyTrashed()->findOrFail($id);
+        $sr->restore();
+
+        ActivityLog::create([
+            'user' => auth()->check() ? auth()->user()->id : null,
+            'action' => 'restored',
+            'subject_type' => ServiceRequest::class,
+            'subject_id' => $sr->id,
+            'changes' => $sr->toArray(),
+        ]);
+
+        return redirect()->route('service-requests.trash')->with('success', 'Restored.');
+    }
+
+    // permanently delete a trashed request
+    public function forceDelete($id)
+    {
+        $sr = ServiceRequest::onlyTrashed()->findOrFail($id);
+        $data = $sr->toArray();
+
+        // delete attached file if exists
+        if ($sr->attachment_path) {
+            try { \Storage::disk('public')->delete($sr->attachment_path); } catch (\Exception $e) {}
+        }
+
+        $sr->forceDelete();
+
+        ActivityLog::create([
+            'user' => auth()->check() ? auth()->user()->id : null,
+            'action' => 'permanently_deleted',
+            'subject_type' => ServiceRequest::class,
+            'subject_id' => $id,
+            'changes' => $data,
+        ]);
+
+        return redirect()->route('service-requests.trash')->with('success', 'Permanently deleted.');
     }
 }
