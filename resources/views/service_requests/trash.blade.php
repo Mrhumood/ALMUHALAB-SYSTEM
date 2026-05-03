@@ -38,11 +38,17 @@
                         <tr>
                             <td class="fw-bold text-muted">{{ $item->id }}</td>
                             <td>
-                                <span class="fw-semibold">{{ Str::limit($item->title, 80) }}</span>
+                                <a href="{{ route('service-requests.showTrashed', $item->id) }}" class="text-decoration-none fw-500">
+                                    {{ Str::limit($item->title, 80) }}
+                                </a>
                             </td>
                             <td class="text-muted small">{{ $item->deleted_at->format('M d, Y H:i') }}</td>
                             <td>
                                 <div class="btn-group">
+                                    <a href="{{ route('service-requests.showTrashed', $item->id) }}" class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </a>
+
                                     <form action="{{ route('service-requests.restore', $item->id) }}" method="POST" class="d-inline">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-outline-success">

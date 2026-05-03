@@ -147,4 +147,11 @@ class ServiceRequestController extends Controller
 
         return redirect()->route('service-requests.trash')->with('success', 'Permanently deleted.');
     }
+
+    // show a trashed (soft-deleted) service request
+    public function showTrashed($id)
+    {
+        $serviceRequest = ServiceRequest::withTrashed()->findOrFail($id);
+        return view('service_requests.show_trashed', ['serviceRequest' => $serviceRequest]);
+    }
 }
