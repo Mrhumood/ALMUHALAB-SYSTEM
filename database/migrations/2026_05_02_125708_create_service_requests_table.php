@@ -11,17 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('service_requests')) return;
         Schema::create('service_requests', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('service_requests');
+        // intentionally left empty — canonical migration handles this
     }
 };
