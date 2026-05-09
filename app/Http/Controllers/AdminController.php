@@ -9,6 +9,7 @@ use App\Models\Permission;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
@@ -25,6 +26,44 @@ class AdminController extends Controller
         $roles = Role::orderBy('name')->get();
 
         return view('admin.users.index', compact('users', 'roles'));
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'name'             => 'required|string|max:100',
+            'email'            => 'required|email|unique:users,email,' . $user->id,
+            'password'         => 'nullable|string|min:8|confirmed',
+            'phone_number'     => 'nullable|string|max:30',
+            'whatsapp_number'  => 'nullable|string|max:30',
+            'notify_email'     => 'nullable|boolean',
+            'notify_whatsapp'  => 'nullable|boolean',
+        ]);
+
+        $user->name             = $data['name'];
+        $user->email            = $data['email'];
+        $user->phone_number     = $data['phone_number'] ?? null;
+        $user->whatsapp_number  = $data['whatsapp_number'] ?? null;
+        $user->notify_email     = (bool) ($data['notify_email'] ?? false);
+        $user->notify_whatsapp  = (bool) ($data['notify_whatsapp'] ?? false);
+        if (!empty($data['password'])) {
+            $user->password = Hash::make($data['password']);
+        }
+        $user->save();
+
+        return back()->with('success', "User \"{$user->name}\" updated.");
+    }
+
+    public function destroyUser(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        $name = $user->name;
+        $user->delete();
+
+        return back()->with('success', "User \"{$name}\" deleted.");
     }
 
     public function updateUserRole(Request $request, User $user)

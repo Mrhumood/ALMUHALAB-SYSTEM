@@ -12,12 +12,14 @@ class ServiceRequest extends Model
 
     protected $fillable = [
         'user_id', 'assigned_to', 'service_type_id',
+        'request_number', 'display_number',
+        'client_name', 'client_phone_code', 'client_phone', 'client_email',
         'title', 'description', 'status',
         'current_stage', 'stage_status', 'is_rejected', 'stage_entered_at',
         'attachment_path',
         'client_country', 'destination_country', 'destination_city',
         'travel_date_start', 'travel_date_end',
-        'companions_count', 'additional_notes',
+        'companions_count', 'companions_data', 'additional_notes',
     ];
 
     protected function casts(): array
@@ -27,6 +29,7 @@ class ServiceRequest extends Model
             'travel_date_end'   => 'date',
             'stage_entered_at'  => 'datetime',
             'is_rejected'       => 'boolean',
+            'companions_data'   => 'array',
         ];
     }
 
@@ -89,6 +92,46 @@ class ServiceRequest extends Model
     {
         return $this->hasMany(ActivityLog::class, 'subject_id')
                     ->where('subject_type', self::class);
+    }
+
+    public function fieldVisibilities()
+    {
+        return $this->hasMany(RequestFieldVisibility::class);
+    }
+
+    /**
+     * Returns a keyed map of field_name → visibility rule.
+     * Fields with no rule default to 'all' (visible to everyone).
+     */
+    public function fieldVisibilityMap(): array
+    {
+        return $this->fieldVisibilities->keyBy('field_name')->toArray();
+    }
+
+    /**
+     * Check whether a specific field is visible to the given user.
+     * Admin with edit_request always sees everything.
+     */
+    public function isFieldVisibleTo(string $field, User $user, array $map = []): bool
+    {
+        if ($user->hasPermission('edit_request')) {
+            return true;
+        }
+
+        $rule = $map[$field] ?? null;
+
+        if (! $rule) {
+            return true; // no rule = visible to all
+        }
+
+        return match ($rule['visibility']) {
+            'all'      => true,
+            'employee' => $user->hasPermission('view_request') || $user->hasPermission('transition_stage'),
+            'admin'    => isset($rule['required_permission']) && $rule['required_permission']
+                            ? ($user->role && $user->role->name === $rule['required_permission'])
+                            : false,
+            default    => true,
+        };
     }
 
     // ── Workflow Helpers ──────────────────────────────────────────────

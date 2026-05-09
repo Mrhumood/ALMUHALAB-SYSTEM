@@ -18,9 +18,17 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return redirect()->route('service-requests.index');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Language switcher
+Route::get('/lang/{locale}', function (string $locale) {
+    if (in_array($locale, ['en', 'ar'])) {
+        session(['locale' => $locale]);
+    }
+    return back();
+})->name('lang.switch');
+
+Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
 
@@ -30,10 +38,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // ── Notifications ─────────────────────────────────────
+    Route::get('notifications', function () {
+        $user          = auth()->user();
+        $notifications = $user->notifications()->latest()->paginate(20);
+        $unread        = $user->unreadNotifications()->count();
+        return view('notifications.index', compact('notifications', 'unread'));
+    })->name('notifications.index');
+
     Route::patch('notifications/{id}/read', function (Request $request, $id) {
         $n = auth()->user()->notifications()->findOrFail($id);
         $n->markAsRead();
-        return response()->json(['ok' => true]);
+        return back();
     })->name('notifications.read');
 
     Route::patch('notifications/read-all', function () {
@@ -68,6 +83,11 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:view_request')
         ->name('service-requests.index');
 
+    Route::get('service-requests-export',
+        [ServiceRequestController::class, 'export'])
+        ->middleware('permission:view_request')
+        ->name('service-requests.export');
+
     Route::get('service-requests/create',
         [ServiceRequestController::class, 'create'])
         ->middleware('permission:create_request')
@@ -85,17 +105,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('service-requests/{service_request}/edit',
         [ServiceRequestController::class, 'edit'])
-        ->middleware('permission:edit_request')
         ->name('service-requests.edit');
 
     Route::put('service-requests/{service_request}',
         [ServiceRequestController::class, 'update'])
-        ->middleware('permission:edit_request')
         ->name('service-requests.update');
 
     Route::patch('service-requests/{service_request}',
         [ServiceRequestController::class, 'update'])
-        ->middleware('permission:edit_request')
         ->name('service-requests.update-patch');
 
     Route::delete('service-requests/{service_request}',
@@ -103,10 +120,24 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:delete_request')
         ->name('service-requests.destroy');
 
-    Route::delete('service-requests/{service_request}/attachments/{attachment}',
+    Route::delete('service-requests/{service_request}/files/{attachment}',
         [ServiceRequestController::class, 'deleteAttachment'])
         ->middleware('permission:delete_request')
         ->name('service-requests.attachments.destroy');
+
+    Route::patch('service-requests/{service_request}/files/{attachment}/visibility',
+        [ServiceRequestController::class, 'updateAttachmentVisibility'])
+        ->middleware('permission:manage_attachments')
+        ->name('service-requests.attachments.visibility');
+
+    Route::patch('service-requests/{service_request}/fields/{field}/visibility',
+        [ServiceRequestController::class, 'updateFieldVisibility'])
+        ->middleware('permission:edit_request')
+        ->name('service-requests.fields.visibility');
+
+    Route::get('attachments/{attachment}/download',
+        [ServiceRequestController::class, 'downloadAttachment'])
+        ->name('attachments.download');
 
     // ── Workflow Actions ──────────────────────────────────
     Route::prefix('service-requests/{service_request}/workflow')
@@ -164,6 +195,8 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
 
             Route::get('users',               [AdminController::class, 'users'])          ->name('users.index');
+            Route::put('users/{user}',        [AdminController::class, 'updateUser'])     ->name('users.update');
+            Route::delete('users/{user}',     [AdminController::class, 'destroyUser'])    ->name('users.destroy');
             Route::patch('users/{user}/role', [AdminController::class, 'updateUserRole']) ->name('users.updateRole');
 
             Route::get('service-types',                   [ServiceTypeController::class, 'index'])  ->name('service-types.index');

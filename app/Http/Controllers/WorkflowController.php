@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Notifications\AssignedToRequestNotification;
 use App\Services\WorkflowService;
 use Illuminate\Http\Request;
 
@@ -75,7 +76,18 @@ class WorkflowController extends Controller
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
-        $serviceRequest->update(['assigned_to' => $request->input('assigned_to') ?: null]);
+        $previousAssignee = $serviceRequest->assigned_to;
+        $newAssigneeId    = $request->input('assigned_to') ?: null;
+
+        $serviceRequest->update(['assigned_to' => $newAssigneeId]);
+
+        // Notify the newly assigned employee (only if it changed and is not self-assignment)
+        if ($newAssigneeId && $newAssigneeId !== $previousAssignee) {
+            $assignee = User::find($newAssigneeId);
+            if ($assignee && $assignee->id !== auth()->id()) {
+                $assignee->notify(new AssignedToRequestNotification($serviceRequest, auth()->user()));
+            }
+        }
 
         return back()->with('success', 'Assignment updated.');
     }

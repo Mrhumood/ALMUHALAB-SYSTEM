@@ -26,7 +26,12 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $data = $request->validated();
+        // Checkboxes: if not sent, they're false
+        $data['notify_email']    = (bool) ($data['notify_email'] ?? false);
+        $data['notify_whatsapp'] = (bool) ($data['notify_whatsapp'] ?? false);
+
+        $request->user()->fill($data);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;

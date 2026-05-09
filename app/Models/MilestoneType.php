@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Cache;
 
 class MilestoneType extends Model
 {
@@ -23,18 +22,9 @@ class MilestoneType extends Model
         'secondary' => 'Grey',
     ];
 
-    const CACHE_KEY = 'milestone_types_all';
-
     public static function allActive(): \Illuminate\Support\Collection
     {
-        return Cache::rememberForever(self::CACHE_KEY, fn() =>
-            static::where('is_active', true)->orderBy('sort_order')->orderBy('id')->get()
-        );
-    }
-
-    public static function clearCache(): void
-    {
-        Cache::forget(self::CACHE_KEY);
+        return static::where('is_active', true)->orderBy('sort_order')->orderBy('id')->get();
     }
 
     public static function asOptions(): array
@@ -46,11 +36,5 @@ class MilestoneType extends Model
                 'color' => $m->color,
             ]])
             ->all();
-    }
-
-    protected static function booted(): void
-    {
-        static::saved(fn() => static::clearCache());
-        static::deleted(fn() => static::clearCache());
     }
 }

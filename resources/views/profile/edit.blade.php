@@ -58,15 +58,58 @@
                     </div>
                     @error('address')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
+
+                {{-- WhatsApp Number --}}
+                <div class="col-md-6">
+                    <label for="whatsapp_number" class="form-label">
+                        <i class="bi bi-whatsapp text-success me-1"></i>{{ __('WhatsApp Number') }}
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text" style="background:#25D366;border-color:#25D366">
+                            <i class="bi bi-whatsapp text-white"></i>
+                        </span>
+                        <input type="text" id="whatsapp_number" name="whatsapp_number"
+                               class="form-control @error('whatsapp_number') is-invalid @enderror"
+                               value="{{ old('whatsapp_number', $user->whatsapp_number) }}"
+                               placeholder="+965 9946 1878">
+                    </div>
+                    <div class="form-text">{{ __('Include country code, e.g. +965XXXXXXXX') }}</div>
+                    @error('whatsapp_number')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+            </div>
+
+            {{-- Notification Preferences --}}
+            <div class="border rounded-3 p-3 mt-4 bg-light">
+                <div class="fw-600 small mb-3">
+                    <i class="bi bi-bell me-1 text-primary"></i>{{ __('Notification Preferences') }}
+                </div>
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="notify_email" name="notify_email"
+                               value="1" {{ old('notify_email', $user->notify_email ?? true) ? 'checked' : '' }}>
+                        <label class="form-check-label small" for="notify_email">
+                            <i class="bi bi-envelope me-1"></i>{{ __('Email notifications') }}
+                        </label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="notify_whatsapp" name="notify_whatsapp"
+                               value="1" {{ old('notify_whatsapp', $user->notify_whatsapp ?? false) ? 'checked' : '' }}
+                               style="--bs-form-check-bg: #25D366">
+                        <label class="form-check-label small" for="notify_whatsapp">
+                            <i class="bi bi-whatsapp text-success me-1"></i>{{ __('WhatsApp notifications') }}
+                            <span class="text-muted">({{ __('requires WhatsApp number above') }})</span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             @if(session('status') === 'profile-updated')
-                <div class="alert alert-success py-2 small mb-3">
+                <div class="alert alert-success py-2 small mb-3 mt-3">
                     <i class="bi bi-check-circle me-1"></i>Profile saved successfully.
                 </div>
             @endif
 
-            <button type="submit" class="btn btn-primary px-4">
+            <button type="submit" class="btn btn-primary px-4 mt-3">
                 <i class="bi bi-check-circle me-1"></i>Save Profile
             </button>
         </form>

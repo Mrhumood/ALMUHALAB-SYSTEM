@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'role_id', 'phone_number', 'address'])]
+#[Fillable(['name', 'email', 'password', 'role_id', 'phone_number', 'address', 'whatsapp_number', 'notify_email', 'notify_whatsapp'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -26,8 +26,22 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
+            'notify_email'      => 'boolean',
+            'notify_whatsapp'   => 'boolean',
         ];
+    }
+
+    public function notificationChannels(): array
+    {
+        $channels = ['database'];
+        if ($this->notify_email && $this->email) {
+            $channels[] = 'mail';
+        }
+        if ($this->notify_whatsapp && $this->whatsapp_number && config('services.twilio.sid')) {
+            $channels[] = \App\Channels\WhatsAppChannel::class;
+        }
+        return $channels;
     }
 
     public function role()

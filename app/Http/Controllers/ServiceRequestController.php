@@ -7,6 +7,7 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceType;
 use App\Models\StageServiceMapping;
 use App\Models\ActivityLog;
+use App\Models\User;
 use App\Http\Requests\ServiceRequestRequest;
 use Illuminate\Http\Request;
 
@@ -30,12 +31,13 @@ class ServiceRequestController extends Controller
             'completed'    => (clone $baseQuery)->where('status', 'Completed')->count(),
         ];
 
-        // Filtered query for the table
-        $query = (clone $baseQuery)->orderBy('created_at', 'desc');
+        // Filtered query for the table — ascending by display number (#1 first)
+        $query = (clone $baseQuery)->orderByDesc('created_at');
 
         if ($search = trim($request->input('search', ''))) {
             $query->where(function ($q) use ($search, $isAdmin) {
-                $q->where('title', 'like', "%{$search}%")
+                $q->where('request_number', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
                   ->orWhere('client_country', 'like', "%{$search}%")
                   ->orWhere('destination_country', 'like', "%{$search}%");
@@ -61,16 +63,25 @@ class ServiceRequestController extends Controller
             $query->whereDate('created_at', '<=', $to);
         }
 
-        $items        = $query->with(['user', 'serviceType'])->paginate(15)->withQueryString();
-        $serviceTypes = ServiceType::where('is_active', true)->orderBy('name')->get();
+        if ($request->boolean('assigned_to_me')) {
+            $query->where('assigned_to', $user->id);
+        } elseif ($assignedTo = $request->input('assigned_to')) {
+            $query->where('assigned_to', $assignedTo);
+        }
 
-        return view('service_requests.index', compact('items', 'stats', 'isAdmin', 'serviceTypes'));
+        $items        = $query->with(['user', 'serviceType', 'assignedTo'])->paginate(15)->withQueryString();
+        $serviceTypes = ServiceType::where('is_active', true)->orderBy('name')->get();
+        $staffUsers   = $isAdmin ? User::whereHas('role')->orderBy('name')->get() : collect();
+
+        return view('service_requests.index', compact('items', 'stats', 'isAdmin', 'serviceTypes', 'staffUsers'));
     }
 
     public function create()
     {
         $serviceTypes = ServiceType::where('is_active', true)->orderBy('name')->get();
-        return view('service_requests.create', compact('serviceTypes'));
+        $roles        = \App\Models\Role::orderBy('name')->get();
+        $staffUsers   = User::whereHas('role')->orderBy('name')->get();
+        return view('service_requests.create', compact('serviceTypes', 'roles', 'staffUsers'));
     }
 
     public function store(ServiceRequestRequest $request)
@@ -91,6 +102,9 @@ class ServiceRequestController extends Controller
                 ]);
             }
         }
+
+        // Save field visibility rules set by staff during creation
+        $this->saveFieldVisibility($request, $sr);
 
         ActivityLog::create([
             'user'         => auth()->id(),
@@ -138,7 +152,11 @@ class ServiceRequestController extends Controller
     {
         $this->authorizeAccess($serviceRequest);
         $serviceTypes = ServiceType::where('is_active', true)->orderBy('name')->get();
-        return view('service_requests.edit', compact('serviceRequest', 'serviceTypes'));
+        $roles        = \App\Models\Role::orderBy('name')->get();
+        $staffUsers   = User::whereHas('role')->orderBy('name')->get();
+        $serviceRequest->load('fieldVisibilities');
+        $fieldVisMap = $serviceRequest->fieldVisibilityMap();
+        return view('service_requests.edit', compact('serviceRequest', 'serviceTypes', 'roles', 'staffUsers', 'fieldVisMap'));
     }
 
     public function update(ServiceRequestRequest $request, ServiceRequest $serviceRequest)
@@ -161,6 +179,8 @@ class ServiceRequestController extends Controller
 
         $original = $serviceRequest->getOriginal();
         $serviceRequest->update($data);
+
+        $this->saveFieldVisibility($request, $serviceRequest);
 
         ActivityLog::create([
             'user'         => auth()->id(),
@@ -193,7 +213,7 @@ class ServiceRequestController extends Controller
 
     public function trash()
     {
-        $items = ServiceRequest::onlyTrashed()->orderBy('deleted_at', 'desc')->get();
+        $items = ServiceRequest::onlyTrashed()->orderBy('display_number', 'asc')->get();
         return view('service_requests.trash', compact('items'));
     }
 
@@ -247,6 +267,72 @@ class ServiceRequestController extends Controller
         return view('service_requests.show_trashed', compact('serviceRequest'));
     }
 
+    public function downloadAttachment(Attachment $attachment)
+    {
+        $user = auth()->user();
+
+        if (! $attachment->isVisibleTo($user)) {
+            abort(403, 'You do not have access to this file.');
+        }
+
+        $path = storage_path('app/public/' . $attachment->file_path);
+
+        if (! file_exists($path)) {
+            abort(404, 'File not found.');
+        }
+
+        return response()->download($path, $attachment->original_name);
+    }
+
+    public function updateFieldVisibility(Request $request, ServiceRequest $serviceRequest, string $field)
+    {
+        $allowedFields = array_keys(\App\Models\RequestFieldVisibility::FIELDS);
+
+        if (! in_array($field, $allowedFields)) {
+            abort(404);
+        }
+
+        $roleNames = \App\Models\Role::orderBy('name')->pluck('name')->toArray();
+
+        $request->validate([
+            'visibility' => 'required|in:all,' . implode(',', $roleNames),
+        ]);
+
+        $val = $request->input('visibility');
+
+        if ($val === 'all') {
+            \App\Models\RequestFieldVisibility::where('service_request_id', $serviceRequest->id)
+                ->where('field_name', $field)
+                ->delete();
+        } else {
+            \App\Models\RequestFieldVisibility::updateOrCreate(
+                ['service_request_id' => $serviceRequest->id, 'field_name' => $field],
+                ['visibility' => 'admin', 'required_permission' => $val]
+            );
+        }
+
+        return back()->with('success', 'Field visibility updated.');
+    }
+
+    public function updateAttachmentVisibility(Request $request, ServiceRequest $serviceRequest, Attachment $attachment)
+    {
+        $roleNames = \App\Models\Role::orderBy('name')->pluck('name')->toArray();
+
+        $request->validate([
+            'visibility' => 'required|in:all,' . implode(',', $roleNames),
+        ]);
+
+        $val = $request->input('visibility');
+
+        if ($val === 'all') {
+            $attachment->update(['visibility' => 'all', 'required_permission' => null]);
+        } else {
+            $attachment->update(['visibility' => 'admin', 'required_permission' => $val]);
+        }
+
+        return back()->with('success', 'Attachment visibility updated.');
+    }
+
     public function deleteAttachment(ServiceRequest $serviceRequest, Attachment $attachment)
     {
         $this->authorizeAccess($serviceRequest);
@@ -257,11 +343,105 @@ class ServiceRequestController extends Controller
         return back()->with('success', 'Attachment removed.');
     }
 
+    public function export(Request $request)
+    {
+        $user    = auth()->user();
+        $isAdmin = $user->hasPermission('edit_request');
+
+        $query = $isAdmin
+            ? ServiceRequest::query()
+            : ServiceRequest::where('user_id', $user->id);
+
+        if ($search = trim($request->input('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('request_number', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%");
+            });
+        }
+        if ($status   = $request->input('status'))          { $query->where('status', $status); }
+        if ($typeId   = $request->input('service_type_id')) { $query->where('service_type_id', $typeId); }
+        if ($from     = $request->input('date_from'))       { $query->whereDate('created_at', '>=', $from); }
+        if ($to       = $request->input('date_to'))         { $query->whereDate('created_at', '<=', $to); }
+
+        $rows = $query->with(['user', 'serviceType', 'assignedTo'])
+                      ->orderByDesc('created_at')
+                      ->get();
+
+        $format = $request->input('format', 'csv');
+
+        if ($format === 'print') {
+            return view('service_requests.export_print', compact('rows', 'isAdmin'));
+        }
+
+        // CSV export
+        $filename = 'requests-' . now()->format('Y-m-d') . '.csv';
+        $headers  = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($rows, $isAdmin) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM for Excel
+
+            $head = ['#', 'Request No.', 'Title', 'Service Type', 'Status', 'Date'];
+            if ($isAdmin) { $head[] = 'Submitted By'; $head[] = 'Assigned To'; }
+            fputcsv($handle, $head);
+
+            foreach ($rows as $i => $r) {
+                $row = [
+                    $i + 1,
+                    $r->request_number ?? '',
+                    $r->title,
+                    $r->serviceType->name ?? '',
+                    $r->status,
+                    $r->created_at->format('Y-m-d'),
+                ];
+                if ($isAdmin) {
+                    $row[] = $r->user->name ?? '';
+                    $row[] = $r->assignedTo->name ?? '';
+                }
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function saveFieldVisibility(Request $request, ServiceRequest $sr): void
+    {
+        if (! auth()->user()->hasPermission('edit_request')) {
+            return;
+        }
+
+        $allowed   = array_keys(\App\Models\RequestFieldVisibility::FIELDS);
+        $roleNames = \App\Models\Role::pluck('name')->toArray();
+        $visRules  = $request->input('fv', []);
+
+        foreach ($allowed as $field) {
+            $val = $visRules[$field] ?? 'all';
+
+            if ($val === 'all' || ! in_array($val, $roleNames)) {
+                \App\Models\RequestFieldVisibility::where('service_request_id', $sr->id)
+                    ->where('field_name', $field)
+                    ->delete();
+                continue;
+            }
+
+            // $val is a role name → store as admin-restricted
+            \App\Models\RequestFieldVisibility::updateOrCreate(
+                ['service_request_id' => $sr->id, 'field_name' => $field],
+                ['visibility' => 'admin', 'required_permission' => $val]
+            );
+        }
+    }
+
     // Ensure non-admin users can only access their own requests
     private function authorizeAccess(ServiceRequest $serviceRequest): void
     {
         $user = auth()->user();
-        if (!$user->hasPermission('edit_request') && $serviceRequest->user_id !== $user->id) {
+        if (!$user->hasPermission('view_request') && !$user->hasPermission('edit_request') && $serviceRequest->user_id !== $user->id) {
             abort(403, 'You do not have access to this request.');
         }
     }

@@ -1,54 +1,45 @@
 @extends('layouts.app')
-@section('title', 'Audit Log')
+@section('title', __('Audit Log'))
 
 @php
-    $actionLabels = [
-        // ── Generic CRUD ──────────────────────────────────────────
-        'created'                  => ['bg-success',   'bi-plus-circle',           'Created'],
-        'updated'                  => ['bg-primary',   'bi-pencil',                'Updated'],
-        'deleted'                  => ['bg-danger',    'bi-trash',                 'Deleted'],
-        'restored'                 => ['bg-info',      'bi-arrow-counterclockwise','Restored'],
-        'permanently_deleted'      => ['bg-dark',      'bi-x-octagon',             'Permanently Deleted'],
+$actionLabels = [
+    'created'                  => ['bg-success',   'bi-plus-circle',           __('Created')],
+    'updated'                  => ['bg-primary',   'bi-pencil',                __('Updated')],
+    'deleted'                  => ['bg-danger',    'bi-trash',                 __('Deleted')],
+    'restored'                 => ['bg-info',      'bi-arrow-counterclockwise',__('Restored')],
+    'permanently_deleted'      => ['bg-dark',      'bi-x-octagon',             __('Permanently Deleted')],
+    'stage_advanced'           => ['bg-success',   'bi-arrow-right-circle',    __('Stage Advanced')],
+    'stage_returned'           => ['bg-warning',   'bi-arrow-left-circle',     __('Stage Returned')],
+    'stage_force_transitioned' => ['bg-danger',    'bi-skip-forward-circle',   __('Force Moved')],
+    'stage_status_changed'     => ['bg-primary',   'bi-arrow-repeat',          __('Status Changed')],
+    'request_rejected'         => ['bg-danger',    'bi-x-circle',              __('Rejected')],
+    'follow_up_created'        => ['bg-success',   'bi-plus-circle-dotted',    __('Follow-Up Added')],
+    'follow_up_updated'        => ['bg-primary',   'bi-pencil-square',         __('Follow-Up Edited')],
+    'follow_up_deleted'        => ['bg-danger',    'bi-dash-circle',           __('Follow-Up Removed')],
+    'follow_up_completed'      => ['bg-success',   'bi-check-circle',          __('Step Completed')],
+    'follow_up_reopened'       => ['bg-warning',   'bi-arrow-repeat',          __('Step Reopened')],
+    'service_added'            => ['bg-success',   'bi-grid-plus',             __('Service Added')],
+    'service_updated'          => ['bg-primary',   'bi-grid',                  __('Service Updated')],
+    'service_removed'          => ['bg-danger',    'bi-grid-x',                __('Service Removed')],
+    'attachment_uploaded'      => ['bg-success',   'bi-paperclip',             __('File Uploaded')],
+    'attachment_deleted'       => ['bg-danger',    'bi-paperclip',             __('File Deleted')],
+];
 
-        // ── Workflow / Stage ──────────────────────────────────────
-        'stage_advanced'           => ['bg-success',   'bi-arrow-right-circle',    'Stage Advanced'],
-        'stage_returned'           => ['bg-warning',   'bi-arrow-left-circle',     'Stage Returned'],
-        'stage_force_transitioned' => ['bg-danger',    'bi-skip-forward-circle',   'Force Moved'],
-        'stage_status_changed'     => ['bg-primary',   'bi-arrow-repeat',          'Status Changed'],
-        'request_rejected'         => ['bg-danger',    'bi-x-circle',              'Rejected'],
-
-        // ── Follow-ups ────────────────────────────────────────────
-        'follow_up_created'        => ['bg-success',   'bi-plus-circle-dotted',    'Follow-Up Added'],
-        'follow_up_updated'        => ['bg-primary',   'bi-pencil-square',         'Follow-Up Edited'],
-        'follow_up_deleted'        => ['bg-danger',    'bi-dash-circle',           'Follow-Up Removed'],
-        'follow_up_completed'      => ['bg-success',   'bi-check-circle',          'Step Completed'],
-        'follow_up_reopened'       => ['bg-warning',   'bi-arrow-repeat',          'Step Reopened'],
-
-        // ── Services ─────────────────────────────────────────────
-        'service_added'            => ['bg-success',   'bi-grid-plus',             'Service Added'],
-        'service_updated'          => ['bg-primary',   'bi-grid',                  'Service Updated'],
-        'service_removed'          => ['bg-danger',    'bi-grid-x',                'Service Removed'],
-
-        // ── Attachments ───────────────────────────────────────────
-        'attachment_uploaded'      => ['bg-success',   'bi-paperclip',             'File Uploaded'],
-        'attachment_deleted'       => ['bg-danger',    'bi-paperclip',             'File Deleted'],
-    ];
-
-    $subjectLabels = [
-        'App\Models\ServiceRequest' => ['bi-file-text',        'Service Request'],
-        'App\Models\FollowUp'       => ['bi-diagram-3',        'Follow-Up Step'],
-    ];
+$subjectLabels = [
+    'App\Models\ServiceRequest' => ['bi-file-text',  __('Service Request')],
+    'App\Models\FollowUp'       => ['bi-diagram-3',  __('Follow-Up Step')],
+];
 @endphp
 
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h4 fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Audit Log</h1>
-        <p class="text-muted small mb-0">Full history of all system activity</p>
+        <h1 class="h4 fw-bold mb-0"><i class="bi bi-clock-history text-primary me-2"></i>{{ __('Audit Log') }}</h1>
+        <p class="text-muted small mb-0">{{ __('Full history of all system activity') }}</p>
     </div>
     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Admin Panel
+        <i class="bi bi-arrow-left me-1"></i>{{ __('Admin Panel') }}
     </a>
 </div>
 
@@ -56,14 +47,14 @@
 <div class="page-card mb-4">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-5">
-            <label class="form-label small">Search</label>
+            <label class="form-label small">{{ __('Search') }}</label>
             <input type="text" name="search" class="form-control form-control-sm"
-                   value="{{ request('search') }}" placeholder="Action, type…">
+                   value="{{ request('search') }}" placeholder="{{ __('Action, type…') }}">
         </div>
         <div class="col-md-4">
-            <label class="form-label small">Action</label>
+            <label class="form-label small">{{ __('Action') }}</label>
             <select name="action" class="form-select form-select-sm">
-                <option value="">— All Actions —</option>
+                <option value="">— {{ __('All Actions') }} —</option>
                 @foreach($actions as $act)
                     <option value="{{ $act }}" {{ request('action') === $act ? 'selected' : '' }}>
                         {{ $actionLabels[$act][2] ?? ucwords(str_replace('_', ' ', $act)) }}
@@ -73,9 +64,9 @@
         </div>
         <div class="col-md-3 d-flex gap-2">
             <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                <i class="bi bi-search me-1"></i>Filter
+                <i class="bi bi-search me-1"></i>{{ __('Filter') }}
             </button>
-            <a href="{{ route('admin.audit-log.index') }}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            <a href="{{ route('admin.audit-log.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('Clear') }}</a>
         </div>
     </form>
 </div>
@@ -86,11 +77,11 @@
         <table class="table table-hover mb-0 align-middle">
             <thead>
                 <tr class="bg-light border-bottom">
-                    <th class="ps-4 text-muted small" style="width:16%">When</th>
-                    <th class="text-muted small" style="width:18%">Who</th>
-                    <th class="text-muted small" style="width:18%">Action</th>
-                    <th class="text-muted small" style="width:18%">Subject</th>
-                    <th class="text-muted small pe-4">Details</th>
+                    <th class="ps-4 text-muted small" style="width:16%">{{ __('When') }}</th>
+                    <th class="text-muted small" style="width:18%">{{ __('Who') }}</th>
+                    <th class="text-muted small" style="width:18%">{{ __('Action') }}</th>
+                    <th class="text-muted small" style="width:18%">{{ __('Subject') }}</th>
+                    <th class="text-muted small pe-4">{{ __('Details') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -127,7 +118,7 @@
                                     </div>
                                 </div>
                             @else
-                                <span class="text-muted small">System</span>
+                                <span class="text-muted small">{{ __('System') }}</span>
                             @endif
                         </td>
                         <td>
@@ -152,13 +143,13 @@
                                         {{ $log->changes['after']['title'] }}
                                     </span>
                                 @elseif(isset($log->changes['before']))
-                                    <span class="text-muted small">Field changes recorded</span>
+                                    <span class="text-muted small">{{ __('Field changes recorded') }}</span>
                                 @endif
 
                                 @if($srId)
                                     <a href="{{ route('admin.audit-log.show', $srId) }}"
                                        class="btn btn-outline-secondary btn-sm ms-auto btn-action"
-                                       title="View Request Audit">
+                                       title="{{ __('View Request Audit') }}">
                                         <i class="bi bi-arrow-right"></i>
                                     </a>
                                 @endif
@@ -169,7 +160,7 @@
                     <tr>
                         <td colspan="5" class="text-center text-muted py-5">
                             <i class="bi bi-clock-history d-block mb-2" style="font-size:1.5rem;opacity:.3"></i>
-                            No activity found.
+                            {{ __('No activity found.') }}
                         </td>
                     </tr>
                 @endforelse
@@ -180,54 +171,26 @@
     @if($logs->hasPages())
         <div class="px-4 py-3 border-top d-flex align-items-center justify-content-between gap-3 flex-wrap">
             <span class="text-muted" style="font-size:.8rem">
-                Showing {{ $logs->firstItem() }}–{{ $logs->lastItem() }} of {{ $logs->total() }} entries
+                {{ __('Showing :first–:last of :total entries', ['first' => $logs->firstItem(), 'last' => $logs->lastItem(), 'total' => $logs->total()]) }}
             </span>
-            <nav aria-label="Audit log pagination">
+            <nav>
                 <ul class="pagination pagination-sm mb-0 gap-1">
-                    {{-- Previous --}}
                     @if($logs->onFirstPage())
-                        <li class="page-item disabled">
-                            <span class="page-link rounded-2" style="font-size:.8rem;padding:.3rem .65rem">
-                                <i class="bi bi-chevron-left" style="font-size:.7rem"></i>
-                            </span>
-                        </li>
+                        <li class="page-item disabled"><span class="page-link rounded-2" style="font-size:.8rem;padding:.3rem .65rem"><i class="bi bi-chevron-left" style="font-size:.7rem"></i></span></li>
                     @else
-                        <li class="page-item">
-                            <a class="page-link rounded-2" href="{{ $logs->previousPageUrl() }}"
-                               style="font-size:.8rem;padding:.3rem .65rem" aria-label="Previous">
-                                <i class="bi bi-chevron-left" style="font-size:.7rem"></i>
-                            </a>
-                        </li>
+                        <li class="page-item"><a class="page-link rounded-2" href="{{ $logs->previousPageUrl() }}" style="font-size:.8rem;padding:.3rem .65rem"><i class="bi bi-chevron-left" style="font-size:.7rem"></i></a></li>
                     @endif
-
-                    {{-- Page numbers --}}
                     @foreach($logs->getUrlRange(max(1, $logs->currentPage() - 2), min($logs->lastPage(), $logs->currentPage() + 2)) as $page => $url)
                         @if($page == $logs->currentPage())
-                            <li class="page-item active">
-                                <span class="page-link rounded-2" style="font-size:.8rem;padding:.3rem .65rem">{{ $page }}</span>
-                            </li>
+                            <li class="page-item active"><span class="page-link rounded-2" style="font-size:.8rem;padding:.3rem .65rem">{{ $page }}</span></li>
                         @else
-                            <li class="page-item">
-                                <a class="page-link rounded-2" href="{{ $url }}"
-                                   style="font-size:.8rem;padding:.3rem .65rem">{{ $page }}</a>
-                            </li>
+                            <li class="page-item"><a class="page-link rounded-2" href="{{ $url }}" style="font-size:.8rem;padding:.3rem .65rem">{{ $page }}</a></li>
                         @endif
                     @endforeach
-
-                    {{-- Next --}}
                     @if($logs->hasMorePages())
-                        <li class="page-item">
-                            <a class="page-link rounded-2" href="{{ $logs->nextPageUrl() }}"
-                               style="font-size:.8rem;padding:.3rem .65rem" aria-label="Next">
-                                <i class="bi bi-chevron-right" style="font-size:.7rem"></i>
-                            </a>
-                        </li>
+                        <li class="page-item"><a class="page-link rounded-2" href="{{ $logs->nextPageUrl() }}" style="font-size:.8rem;padding:.3rem .65rem"><i class="bi bi-chevron-right" style="font-size:.7rem"></i></a></li>
                     @else
-                        <li class="page-item disabled">
-                            <span class="page-link rounded-2" style="font-size:.8rem;padding:.3rem .65rem">
-                                <i class="bi bi-chevron-right" style="font-size:.7rem"></i>
-                            </span>
-                        </li>
+                        <li class="page-item disabled"><span class="page-link rounded-2" style="font-size:.8rem;padding:.3rem .65rem"><i class="bi bi-chevron-right" style="font-size:.7rem"></i></span></li>
                     @endif
                 </ul>
             </nav>

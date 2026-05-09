@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-bs-theme="light">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->isLocale('ar') ? 'rtl' : 'ltr' }}" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,12 +9,23 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @if(app()->isLocale('ar'))
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @else
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    @endif
 
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @if(app()->isLocale('ar'))
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+        @endif
     @else
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        @if(app()->isLocale('ar'))
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+        @else
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        @endif
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     @endif
 
@@ -59,6 +70,30 @@
 
             --transition: .18s ease;
         }
+
+        /* ─────────────────────────────────────────────────
+           ARABIC / RTL OVERRIDES
+        ───────────────────────────────────────────────── */
+        html[lang="ar"] {
+            --font-base: 'Cairo', system-ui, sans-serif;
+        }
+        html[lang="ar"] body {
+            letter-spacing: 0;
+        }
+        html[dir="rtl"] .site-nav .navbar-brand { letter-spacing: 0; }
+        html[dir="rtl"] .bi { display: inline-block; }
+        html[dir="rtl"] .me-1 { margin-right: 0 !important; margin-left: .25rem !important; }
+        html[dir="rtl"] .me-2 { margin-right: 0 !important; margin-left: .5rem !important; }
+        html[dir="rtl"] .ms-1 { margin-left: 0 !important; margin-right: .25rem !important; }
+        html[dir="rtl"] .ms-2 { margin-left: 0 !important; margin-right: .5rem !important; }
+        html[dir="rtl"] .ps-4 { padding-right: 1.5rem !important; padding-left: 0 !important; }
+        html[dir="rtl"] .pe-4 { padding-left: 1.5rem !important; padding-right: 0 !important; }
+        html[dir="rtl"] .notif-panel { left: 0; right: auto; }
+        html[dir="rtl"] .tl-connector { }
+        html[dir="rtl"] .toast-stack { left: 1.25rem; right: auto; }
+        html[dir="rtl"] .dropdown-menu-end { --bs-position: start; }
+        html[dir="rtl"] .notif-count { left: 3px; right: auto; }
+        html[dir="rtl"] .lang-btn-active { font-weight: 700; }
 
         /* ─────────────────────────────────────────────────
            BASE
@@ -119,20 +154,58 @@
             -webkit-backdrop-filter: blur(12px);
         }
         .site-nav .navbar-brand {
-            font-weight: 700;
-            font-size: 1.05rem;
-            letter-spacing: -.4px;
             color: #fff !important;
-            gap: .5rem;
+            gap: .75rem;
+            padding-top: .55rem;
+            padding-bottom: .55rem;
         }
-        .site-nav .navbar-brand .brand-icon {
-            width: 30px; height: 30px;
-            background: var(--color-primary);
-            border-radius: var(--radius-sm);
+        .brand-mark {
+            width: 40px; height: 40px;
+            background: linear-gradient(145deg, #b45309, #f59e0b 60%, #fbbf24);
+            border-radius: 10px;
             display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1rem; color: #fff;
             flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(245,158,11,.30), inset 0 1px 0 rgba(255,255,255,.18);
+            position: relative;
+            overflow: hidden;
         }
+        .brand-mark::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, transparent 55%);
+            border-radius: inherit;
+        }
+        .brand-mark-letter {
+            font-size: 1.35rem;
+            font-weight: 900;
+            color: #fff;
+            font-family: 'Cairo', 'Inter', system-ui, sans-serif;
+            line-height: 1;
+            position: relative;
+            text-shadow: 0 1px 3px rgba(0,0,0,.25);
+            letter-spacing: 0;
+        }
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .brand-name {
+            font-size: .975rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -.2px;
+            white-space: nowrap;
+        }
+        .brand-sub {
+            font-size: .62rem;
+            font-weight: 500;
+            color: rgba(255,255,255,.45);
+            letter-spacing: .09em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        html[dir="rtl"] .brand-name { letter-spacing: 0; }
         .site-nav .nav-link {
             color: rgba(255,255,255,.7) !important;
             font-weight: 500;
@@ -467,16 +540,15 @@
         }
 
         /* ─────────────────────────────────────────────────
-           STAGE PROGRESS BAR (horizontal stepper)
-           HTML: .stage-step > [.stage-circle] + [.stage-label] + [.stage-connector]
-           Layout: each step = row(circle + connector), label absolute below
+           STAGE PROGRESS BAR — card-style stepper
         ───────────────────────────────────────────────── */
         .stage-progress {
             display: flex;
-            align-items: center;
+            align-items: stretch;
+            gap: 0;
             overflow-x: auto;
-            padding: .5rem 0 4.25rem;
             scrollbar-width: none;
+            padding: .25rem 0;
         }
         .stage-progress::-webkit-scrollbar { display: none; }
 
@@ -485,79 +557,94 @@
             flex-direction: row;
             align-items: center;
             flex: 1;
-            min-width: 68px;
+            min-width: 90px;
             position: relative;
         }
-        .stage-step:last-child { flex: 0 0 auto; }
+        .stage-step:last-child { flex: 0 1 auto; }
+
+        /* The card itself */
+        .stage-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: .35rem;
+            padding: .7rem .5rem .65rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            flex-shrink: 0;
+            width: 82px;
+            transition: transform .2s, box-shadow .2s;
+        }
 
         .stage-circle {
-            width: 40px; height: 40px;
+            width: 38px; height: 38px;
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1rem;
+            font-size: .95rem;
             flex-shrink: 0;
-            border: 2.5px solid var(--color-border);
+            border: 2px solid var(--color-border);
             background: var(--color-surface);
             color: var(--color-subtle);
-            z-index: 2;
             transition: all .25s;
+        }
+        .stage-num {
+            font-size: .58rem; color: var(--color-subtle);
+            font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+            line-height: 1;
+        }
+        .stage-name {
+            font-size: .68rem; font-weight: 700;
+            color: #374151; line-height: 1.3;
+        }
+        .stage-status-badge {
+            display: inline-block;
+            font-size: .58rem; font-weight: 700;
+            padding: .12em .55em;
+            border-radius: var(--radius-pill);
         }
 
         .stage-connector {
             flex: 1;
-            height: 2.5px;
+            height: 2px;
             background: var(--color-border);
             transition: background .25s;
-            min-width: 8px;
-        }
-
-        .stage-label {
-            position: absolute;
-            top: 48px;
-            left: 20px;
-            transform: translateX(-50%);
-            min-width: 72px;
-            text-align: center;
-            pointer-events: none;
-        }
-        .stage-num {
-            font-size: .6rem; color: var(--color-subtle);
-            font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
-        }
-        .stage-name {
-            font-size: .72rem; font-weight: 700;
-            color: #374151; line-height: 1.25; margin-top: .1rem;
-        }
-        .stage-status-badge {
-            display: inline-block;
-            font-size: .62rem; font-weight: 700;
-            padding: .15em .6em;
-            border-radius: var(--radius-pill);
-            margin-top: .3rem;
+            min-width: 6px;
+            align-self: center;
+            margin-top: -10px;
         }
 
         /* past */
-        .stage-step.past .stage-circle    { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+        .stage-step.past .stage-card    { background: #f0fdf4; }
+        .stage-step.past .stage-circle  { background: var(--color-success); border-color: var(--color-success); color: #fff; }
         .stage-step.past .stage-connector { background: var(--color-success); }
-        .stage-step.past .stage-name      { color: var(--color-success); }
+        .stage-step.past .stage-name    { color: var(--color-success); }
+        .stage-step.past .stage-num     { color: var(--color-success); opacity:.7; }
         .stage-step.past .stage-status-badge { background: #dcfce7; color: #166534; }
 
         /* current */
+        .stage-step.current .stage-card {
+            background: #eff6ff;
+            box-shadow: 0 0 0 2px var(--color-primary);
+        }
         .stage-step.current .stage-circle {
             background: var(--color-primary); border-color: var(--color-primary); color: #fff;
             box-shadow: 0 0 0 5px rgba(37,99,235,.15);
         }
         .stage-step.current .stage-name { color: var(--color-primary); font-weight: 800; }
+        .stage-step.current .stage-num  { color: var(--color-primary); }
         .stage-step.current .stage-status-badge { background: #dbeafe; color: #1e40af; }
 
         /* future */
-        .stage-step.future .stage-circle { opacity: .45; }
-        .stage-step.future .stage-name   { color: var(--color-subtle); font-weight: 600; }
+        .stage-step.future .stage-card  { background: transparent; }
+        .stage-step.future .stage-circle { opacity: .4; }
+        .stage-step.future .stage-name  { color: var(--color-subtle); }
         .stage-step.future .stage-status-badge { display: none; }
 
         /* rejected */
-        .stage-step.rejected .stage-circle    { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
-        .stage-step.rejected .stage-name      { color: var(--color-danger); }
+        .stage-step.rejected .stage-card   { background: #fff1f2; box-shadow: 0 0 0 2px var(--color-danger); }
+        .stage-step.rejected .stage-circle { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
+        .stage-step.rejected .stage-name   { color: var(--color-danger); }
         .stage-step.rejected .stage-status-badge { background: #fee2e2; color: #991b1b; }
 
         /* ─────────────────────────────────────────────────
@@ -620,10 +707,15 @@
       <div class="container-fluid px-4" style="max-width:1320px;margin:0 auto;">
 
         {{-- Brand --}}
-        <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none"
+        <a class="navbar-brand d-flex align-items-center text-decoration-none"
            href="{{ route('service-requests.index') }}">
-            <span class="brand-icon"><i class="bi bi-layers-fill"></i></span>
-            {{ config('app.name', 'Case System') }}
+            <span class="brand-mark">
+                <span class="brand-mark-letter">م</span>
+            </span>
+            <span class="brand-text">
+                <span class="brand-name">ALMuhalab</span>
+                <span class="brand-sub">International Co.</span>
+            </span>
         </a>
 
         <button class="navbar-toggler border-0 text-white" type="button"
@@ -637,9 +729,15 @@
           {{-- Left links --}}
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1 mt-2 mt-lg-0">
             <li class="nav-item">
+                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                   href="{{ route('dashboard') }}">
+                    <i class="bi bi-speedometer2 me-1"></i>{{ __('Dashboard') }}
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('service-requests.index') ? 'active' : '' }}"
                    href="{{ route('service-requests.index') }}">
-                    <i class="bi bi-list-ul me-1"></i>Requests
+                    <i class="bi bi-list-ul me-1"></i>{{ __('Requests') }}
                 </a>
             </li>
 
@@ -647,7 +745,7 @@
                 @if(auth()->user()->hasPermission('create_request'))
                 <li class="nav-item d-lg-none">
                     <a class="nav-link" href="{{ route('service-requests.create') }}">
-                        <i class="bi bi-plus-circle me-1"></i>New Request
+                        <i class="bi bi-plus-circle me-1"></i>{{ __('New Request') }}
                     </a>
                 </li>
                 @endif
@@ -656,7 +754,7 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('service-requests.trash') ? 'active' : '' }}"
                        href="{{ route('service-requests.trash') }}">
-                        <i class="bi bi-trash me-1"></i>Trash
+                        <i class="bi bi-trash me-1"></i>{{ __('Trash') }}
                     </a>
                 </li>
                 @endif
@@ -665,43 +763,43 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {{ request()->routeIs('admin.*') ? 'active' : '' }}"
                        href="#" data-bs-toggle="dropdown" data-bs-offset="0,6" role="button">
-                        <i class="bi bi-shield-lock me-1"></i>Admin
+                        <i class="bi bi-shield-lock me-1"></i>{{ __('Admin') }}
                     </a>
                     <ul class="dropdown-menu">
                         <li>
                             <a class="dropdown-item {{ request()->routeIs('admin.users.*') ? 'text-white' : '' }}"
                                href="{{ route('admin.users.index') }}">
-                                <i class="bi bi-people"></i>Users
+                                <i class="bi bi-people"></i>{{ __('Users') }}
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.roles.index') }}">
-                                <i class="bi bi-shield-check"></i>Roles & Permissions
+                                <i class="bi bi-shield-check"></i>{{ __('Roles & Permissions') }}
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.service-types.index') }}">
-                                <i class="bi bi-tags"></i>Service Types
+                                <i class="bi bi-tags"></i>{{ __('Service Types') }}
                             </a>
                         </li>
                         @if(auth()->user()->hasPermission('manage_service_catalog'))
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.service-catalog.index') }}">
-                                <i class="bi bi-grid-3x3-gap"></i>Service Catalog
+                                <i class="bi bi-grid-3x3-gap"></i>{{ __('Service Catalog') }}
                             </a>
                         </li>
                         @endif
                         <li>
                             <a class="dropdown-item {{ request()->routeIs('admin.milestone-types.*') ? 'text-white' : '' }}"
                                href="{{ route('admin.milestone-types.index') }}">
-                                <i class="bi bi-diagram-3"></i>Milestone Types
+                                <i class="bi bi-diagram-3"></i>{{ __('Milestone Types') }}
                             </a>
                         </li>
                         @if(auth()->user()->hasPermission('view_audit_log'))
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.audit-log.index') }}">
-                                <i class="bi bi-clock-history"></i>Audit Log
+                                <i class="bi bi-clock-history"></i>{{ __('Audit Log') }}
                             </a>
                         </li>
                         @endif
@@ -713,12 +811,30 @@
 
           {{-- Right controls --}}
           <ul class="navbar-nav align-items-center gap-1 mb-2 mb-lg-0">
+
+            {{-- Language Switcher --}}
+            <li class="nav-item">
+                <div class="d-flex align-items-center gap-0"
+                     style="background:rgba(255,255,255,.08);border-radius:6px;padding:2px">
+                    <a href="{{ route('lang.switch', 'ar') }}"
+                       class="nav-link px-2 py-1 {{ app()->isLocale('ar') ? 'text-white fw-bold' : '' }}"
+                       style="font-size:.78rem;border-radius:4px;{{ app()->isLocale('ar') ? 'background:rgba(255,255,255,.18)' : '' }}">
+                       AR
+                    </a>
+                    <a href="{{ route('lang.switch', 'en') }}"
+                       class="nav-link px-2 py-1 {{ app()->isLocale('en') ? 'text-white fw-bold' : '' }}"
+                       style="font-size:.78rem;border-radius:4px;{{ app()->isLocale('en') ? 'background:rgba(255,255,255,.18)' : '' }}">
+                       EN
+                    </a>
+                </div>
+            </li>
+
             @guest
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('login') }}">Login</a>
+                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-primary btn-sm px-3" href="{{ route('register') }}">Register</a>
+                    <a class="btn btn-primary btn-sm px-3" href="{{ route('register') }}">{{ __('Register') }}</a>
                 </li>
             @else
 
@@ -737,7 +853,7 @@
                     <div class="dropdown-menu notif-panel">
                         <div class="notif-panel-header">
                             <span class="title">
-                                <i class="bi bi-bell me-1 opacity-75"></i>Notifications
+                                <i class="bi bi-bell me-1 opacity-75"></i>{{ __('Notifications') }}
                                 @if($unreadCount > 0)
                                     <span class="badge bg-primary rounded-pill ms-1" style="font-size:.62rem">{{ $unreadCount }}</span>
                                 @endif
@@ -745,7 +861,7 @@
                             @if($unreadCount > 0)
                                 <form action="{{ route('notifications.read-all') }}" method="POST" class="d-inline">
                                     @csrf @method('PATCH')
-                                    <button type="submit" class="mark-all-btn">Mark all read</button>
+                                    <button type="submit" class="mark-all-btn">{{ __('Mark all read') }}</button>
                                 </form>
                             @endif
                         </div>
@@ -768,7 +884,7 @@
                                             @if(!$notif->read_at)
                                                 <form action="{{ route('notifications.read', $notif->id) }}" method="POST" class="d-inline">
                                                     @csrf @method('PATCH')
-                                                    <button type="submit">Mark read</button>
+                                                    <button type="submit">{{ __('Mark as read') }}</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -777,9 +893,15 @@
                             @empty
                                 <div class="notif-empty">
                                     <i class="bi bi-bell-slash"></i>
-                                    <span>No notifications yet</span>
+                                    <span>{{ __('No notifications yet') }}</span>
                                 </div>
                             @endforelse
+                        </div>
+                        <div style="padding:.6rem 1rem;border-top:1px solid rgba(255,255,255,.08);text-align:center">
+                            <a href="{{ route('notifications.index') }}"
+                               style="font-size:.78rem;color:rgba(255,255,255,.45);text-decoration:none">
+                                {{ __('View all notifications') }} <i class="bi bi-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 </li>
@@ -788,7 +910,7 @@
                 @if(auth()->user()->hasPermission('create_request'))
                 <li class="nav-item d-none d-lg-block">
                     <a class="btn btn-primary btn-sm px-3" href="{{ route('service-requests.create') }}">
-                        <i class="bi bi-plus-lg me-1"></i>New Request
+                        <i class="bi bi-plus-lg me-1"></i>{{ __('New Request') }}
                     </a>
                 </li>
                 @endif
@@ -813,7 +935,7 @@
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="bi bi-person"></i>Profile Settings
+                                <i class="bi bi-person"></i>{{ __('Profile Settings') }}
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
@@ -821,7 +943,7 @@
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
                                 <button class="dropdown-item text-danger" type="submit">
-                                    <i class="bi bi-box-arrow-right"></i>Sign Out
+                                    <i class="bi bi-box-arrow-right"></i>{{ __('Sign Out') }}
                                 </button>
                             </form>
                         </li>
@@ -876,7 +998,7 @@
 
             @hasSection('breadcrumbs')
             <nav class="app-breadcrumb" aria-label="Breadcrumb">
-                <a href="{{ route('service-requests.index') }}"><i class="bi bi-house me-1"></i>Home</a>
+                <a href="{{ route('service-requests.index') }}"><i class="bi bi-house me-1"></i>{{ __('Home') }}</a>
                 @yield('breadcrumbs')
             </nav>
             @endif

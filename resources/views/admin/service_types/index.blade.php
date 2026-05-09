@@ -1,15 +1,15 @@
 @extends('layouts.app')
-@section('title', 'Service Types')
+@section('title', __('Service Types'))
 
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h1 class="h4 fw-bold mb-0"><i class="bi bi-tags text-primary me-2"></i>Service Types</h1>
-        <p class="text-muted small mb-0">Manage the categories available for service requests</p>
+        <h1 class="h4 fw-bold mb-0"><i class="bi bi-tags text-primary me-2"></i>{{ __('Service Types') }}</h1>
+        <p class="text-muted small mb-0">{{ __('Manage the categories available for service requests') }}</p>
     </div>
     <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Admin Panel
+        <i class="bi bi-arrow-left me-1"></i>{{ __('Admin Panel') }}
     </a>
 </div>
 
@@ -23,11 +23,11 @@
                     <thead>
                         <tr class="bg-light border-bottom">
                             <th class="ps-4 text-muted small fw-600" style="width:5%">#</th>
-                            <th class="text-muted small fw-600" style="width:25%">NAME</th>
-                            <th class="text-muted small fw-600" style="width:35%">DESCRIPTION</th>
-                            <th class="text-muted small fw-600" style="width:10%">STATUS</th>
-                            <th class="text-muted small fw-600" style="width:10%">REQUESTS</th>
-                            <th class="text-muted small fw-600 pe-4" style="width:15%">ACTIONS</th>
+                            <th class="text-muted small fw-600" style="width:25%">{{ __('NAME') }}</th>
+                            <th class="text-muted small fw-600" style="width:35%">{{ __('DESCRIPTION') }}</th>
+                            <th class="text-muted small fw-600" style="width:10%">{{ __('STATUS') }}</th>
+                            <th class="text-muted small fw-600" style="width:10%">{{ __('REQUESTS') }}</th>
+                            <th class="text-muted small fw-600 pe-4" style="width:15%">{{ __('ACTIONS') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,9 +38,9 @@
                             <td class="text-muted small">{{ $type->description ?: '—' }}</td>
                             <td>
                                 @if($type->is_active)
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge bg-success">{{ __('Active') }}</span>
                                 @else
-                                    <span class="badge bg-secondary">Inactive</span>
+                                    <span class="badge bg-secondary">{{ __('Inactive') }}</span>
                                 @endif
                             </td>
                             <td>
@@ -54,20 +54,20 @@
                                     </button>
                                     @if($type->service_requests_count === 0)
                                     <form action="{{ route('admin.service-types.destroy', $type) }}" method="POST"
-                                          onsubmit="return confirm('Delete \'{{ $type->name }}\'?')">
+                                          onsubmit="return confirm('{{ __('Delete') }} \'{{ $type->name }}\'?')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
                                     @else
-                                    <span class="text-muted small" title="Has linked requests"><i class="bi bi-lock"></i></span>
+                                    <span class="text-muted small" title="{{ __('Has linked requests') }}"><i class="bi bi-lock"></i></span>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="6" class="text-center text-muted py-4">No service types yet.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted py-4">{{ __('No service types yet.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -80,51 +80,51 @@
 
         {{-- Create --}}
         <div class="bg-white rounded-3 shadow-sm p-4 mb-3" id="create-form">
-            <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle text-success me-1"></i>Add Service Type</h6>
+            <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle text-success me-1"></i>{{ __('Add Service Type') }}</h6>
             <form action="{{ route('admin.service-types.store') }}" method="POST">
                 @csrf
                 <div class="mb-2">
-                    <label class="form-label">Name <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control form-control-sm @error('name') is-invalid @enderror"
-                           value="{{ old('name') }}" placeholder="e.g. Tourism">
+                           value="{{ old('name') }}" placeholder="{{ __('e.g. Tourism') }}">
                     @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Description</label>
+                    <label class="form-label">{{ __('Description') }}</label>
                     <input type="text" name="description" class="form-control form-control-sm"
-                           value="{{ old('description') }}" placeholder="Short description (optional)">
+                           value="{{ old('description') }}" placeholder="{{ __('Short description (optional)') }}">
                 </div>
                 <button type="submit" class="btn btn-success btn-sm w-100">
-                    <i class="bi bi-plus-lg me-1"></i>Create Type
+                    <i class="bi bi-plus-lg me-1"></i>{{ __('Create Type') }}
                 </button>
             </form>
         </div>
 
         {{-- Edit (hidden by default) --}}
         <div class="bg-white rounded-3 shadow-sm p-4 border border-primary d-none" id="edit-form">
-            <h6 class="fw-bold mb-3"><i class="bi bi-pencil text-primary me-1"></i>Edit Service Type</h6>
+            <h6 class="fw-bold mb-3"><i class="bi bi-pencil text-primary me-1"></i>{{ __('Edit Service Type') }}</h6>
             <form id="edit-form-inner" method="POST">
                 @csrf @method('PATCH')
                 <div class="mb-2">
-                    <label class="form-label">Name <span class="text-danger">*</span></label>
+                    <label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
                     <input type="text" name="name" id="edit-name" class="form-control form-control-sm" required>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label">Description</label>
+                    <label class="form-label">{{ __('Description') }}</label>
                     <input type="text" name="description" id="edit-description" class="form-control form-control-sm">
                 </div>
                 <div class="mb-3">
                     <div class="form-check">
                         <input type="checkbox" name="is_active" id="edit-is-active" class="form-check-input" value="1">
-                        <label class="form-check-label small" for="edit-is-active">Active</label>
+                        <label class="form-check-label small" for="edit-is-active">{{ __('Active') }}</label>
                     </div>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
-                        <i class="bi bi-check-circle me-1"></i>Save
+                        <i class="bi bi-check-circle me-1"></i>{{ __('Save') }}
                     </button>
                     <button type="button" class="btn btn-outline-secondary btn-sm" onclick="closeEdit()">
-                        Cancel
+                        {{ __('Cancel') }}
                     </button>
                 </div>
             </form>
