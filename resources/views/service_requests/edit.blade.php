@@ -349,13 +349,10 @@ $fvNotes = (($fieldVisMap['additional_notes']['visibility'] ?? 'all') === 'admin
                            class="btn btn-outline-primary btn-sm btn-action">
                             <i class="bi bi-download"></i>
                         </a>
-                        <form action="{{ route('service-requests.attachments.destroy', [$serviceRequest, $attachment]) }}"
-                              method="POST" onsubmit="return confirm('{{ __('Remove this attachment?') }}')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-outline-danger btn-sm btn-action">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-outline-danger btn-sm btn-action"
+                                onclick="deleteAttachment('{{ route('service-requests.attachments.destroy', [$serviceRequest, $attachment]) }}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                     @endforeach
                 </div>
@@ -376,7 +373,7 @@ $fvNotes = (($fieldVisMap['additional_notes']['visibility'] ?? 'all') === 'admin
                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addFileRow()">
                     <i class="bi bi-plus me-1"></i>{{ __('Add Another File') }}
                 </button>
-                <div class="form-text mt-1"><i class="bi bi-info-circle me-1"></i>{{ __('Max 5 MB per file.') }}</div>
+                <div class="form-text mt-1"><i class="bi bi-info-circle me-1"></i>{{ __('Max 20 MB per file.') }}</div>
                 @error('attachments')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 @error('attachments.*')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
             </div>
@@ -408,6 +405,12 @@ $fvNotes = (($fieldVisMap['additional_notes']['visibility'] ?? 'all') === 'admin
     </form>
 </div>
 </div>
+
+{{-- Hidden form for attachment deletion (kept outside the edit form to avoid _method collision) --}}
+<form id="delete-attachment-form" method="POST" style="display:none">
+    @csrf
+    <input type="hidden" name="_method" value="DELETE">
+</form>
 
 <script>
 const phoneCodes  = @json(array_keys($phoneCodes));
@@ -508,6 +511,13 @@ function refreshRemoveBtns() {
     rows.forEach(row => {
         row.querySelector('button').style.display = rows.length > 1 ? '' : 'none';
     });
+}
+
+function deleteAttachment(url) {
+    if (!confirm('{{ __('Remove this attachment?') }}')) return;
+    const form = document.getElementById('delete-attachment-form');
+    form.action = url;
+    form.submit();
 }
 </script>
 @endsection

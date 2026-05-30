@@ -15,11 +15,13 @@ class StageAttachmentController extends Controller
         abort_unless(auth()->user()->hasPermission('manage_attachments'), 403);
 
         $request->validate([
-            'files'        => 'required|array|min:1',
-            'files.*'      => 'required|file|max:20480',
-            'stage'        => 'required|integer|between:1,7',
-            'visibility'   => 'required|in:admin,employee,client',
+            'files'      => 'required|array|min:1',
+            'files.*'    => 'required|file|max:20480',
+            'stage'      => 'required|integer|between:1,7',
+            'visibility' => 'nullable|in:admin,employee,client',
         ]);
+
+        $visibility = $request->input('visibility', 'employee');
 
         foreach ($request->file('files') as $file) {
             $path = $file->store("stage-attachments/{$serviceRequest->id}", 'public');
@@ -32,7 +34,7 @@ class StageAttachmentController extends Controller
                 'original_name'      => $file->getClientOriginalName(),
                 'mime_type'          => $file->getMimeType(),
                 'size'               => $file->getSize(),
-                'visibility'         => $request->visibility,
+                'visibility'         => $visibility,
             ]);
 
             ActivityLog::create([
@@ -43,7 +45,7 @@ class StageAttachmentController extends Controller
                 'changes'      => [
                     'file'       => $file->getClientOriginalName(),
                     'stage'      => $request->stage,
-                    'visibility' => $request->visibility,
+                    'visibility' => $visibility,
                 ],
             ]);
         }

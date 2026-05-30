@@ -144,6 +144,8 @@
         .btn-login:active { transform: translateY(0); }
         .login-form-card a { color: #f59e0b; }
         .login-form-card a:hover { color: #fbbf24; }
+        .forgot-link { color: rgba(255,255,255,.4) !important; font-size: .78rem; text-decoration: none; transition: color .15s; }
+        .forgot-link:hover { color: #f59e0b !important; }
         .login-divider {
             border-color: rgba(255,255,255,.08);
             margin: 1.25rem 0;

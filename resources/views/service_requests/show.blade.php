@@ -361,23 +361,99 @@
             @if($isClient && $currentStage === 4 && !$serviceRequest->is_rejected)
             <div class="page-card mb-4 border border-warning border-2">
                 <h6 class="fw-bold mb-2 text-warning"><i class="bi bi-person-check me-1"></i>{{ __('Your Action Required') }}</h6>
-                <p class="text-muted small mb-3">{{ __('Please review the prepared itinerary and confirm your payment or request changes.') }}</p>
-                <form action="{{ route('workflow.status', $serviceRequest) }}" method="POST" class="d-flex gap-2">
-                    @csrf
-                    <input type="hidden" name="stage_status" value="Paid">
-                    <button type="submit" class="btn btn-success"
-                            onclick="return confirm('{{ __('Confirm payment and approve the request?') }}')">
-                        <i class="bi bi-check-circle me-1"></i>{{ __('Confirm & Pay') }}
-                    </button>
-                </form>
-                <form action="{{ route('workflow.status', $serviceRequest) }}" method="POST" class="d-flex gap-2 mt-2">
-                    @csrf
-                    <input type="hidden" name="stage_status" value="Rejected">
-                    <button type="submit" class="btn btn-outline-danger btn-sm"
-                            onclick="return confirm('{{ __('Reject this request? This action stops the process.') }}')">
-                        <i class="bi bi-x-circle me-1"></i>{{ __('Reject') }}
-                    </button>
-                </form>
+
+                @if($stageStatus === 'Awaiting Payment')
+                    <div class="d-flex align-items-center gap-2 p-3 rounded-2 mb-3"
+                         style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25)">
+                        <i class="bi bi-hourglass-split text-warning fs-5"></i>
+                        <div>
+                            <div class="fw-600 text-warning" style="font-size:.88rem">{{ __('Payment Receipt Submitted') }}</div>
+                            <div class="text-muted small">{{ __('Our team is reviewing your payment. You will be notified once approved.') }}</div>
+                        </div>
+                    </div>
+                @else
+                    <p class="text-muted small mb-3">{{ __('Please review the prepared itinerary and confirm your payment by uploading a payment receipt.') }}</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
+                            <i class="bi bi-credit-card me-1"></i>{{ __('Confirm Payment') }}
+                        </button>
+                        <form action="{{ route('workflow.status', $serviceRequest) }}" method="POST" class="d-inline">
+                            @csrf
+                            <input type="hidden" name="stage_status" value="Rejected">
+                            <button type="submit" class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('{{ __('Reject this request? This action stops the process.') }}')">
+                                <i class="bi bi-x-circle me-1"></i>{{ __('Reject') }}
+                            </button>
+                        </form>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Payment Confirmation Modal --}}
+            <div class="modal fade" id="confirmPaymentModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header border-0">
+                            <h6 class="modal-title fw-bold">
+                                <i class="bi bi-credit-card text-success me-2"></i>{{ __('Confirm Payment') }}
+                            </h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form action="{{ route('workflow.confirm-payment', $serviceRequest) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="modal-body">
+                                <p class="text-muted small mb-3">
+                                    {{ __('Upload a photo or PDF of your payment receipt. Our team will review it and confirm your payment.') }}
+                                </p>
+                                <div class="mb-3">
+                                    <label class="form-label fw-600">{{ __('Payment Receipt') }} <span class="text-danger">*</span></label>
+                                    <input type="file" name="receipt" class="form-control @error('receipt') is-invalid @enderror"
+                                           accept=".jpg,.jpeg,.png,.pdf" required>
+                                    <div class="form-text"><i class="bi bi-info-circle me-1"></i>{{ __('JPG, PNG or PDF — max 20 MB.') }}</div>
+                                    @error('receipt')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="p-2 rounded-2 small" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e">
+                                    <i class="bi bi-clock me-1"></i>{{ __('After submission, your payment status will remain pending until our team reviews the receipt.') }}
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-upload me-1"></i>{{ __('Submit Receipt') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            {{-- Staff: Approve Payment (stage 4, status = Awaiting Payment) --}}
+            @if(!$isClient && $currentStage === 4 && $stageStatus === 'Awaiting Payment' && ($canTransition || $canUpdateStatus))
+            <div class="page-card mb-4 border border-warning border-2">
+                <h6 class="fw-bold mb-2 text-warning">
+                    <i class="bi bi-receipt me-1"></i>{{ __('Payment Pending Review') }}
+                </h6>
+                <p class="text-muted small mb-3">
+                    {{ __('The client has submitted a payment receipt. Please review the receipt in the Attachments section below, then approve or reject.') }}
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <form action="{{ route('workflow.approve-payment', $serviceRequest) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-success btn-sm"
+                                onclick="return confirm('{{ __('Approve the payment and mark as Paid?') }}')">
+                            <i class="bi bi-check-circle me-1"></i>{{ __('Approve Payment') }}
+                        </button>
+                    </form>
+                    <form action="{{ route('workflow.status', $serviceRequest) }}" method="POST" class="d-inline">
+                        @csrf
+                        <input type="hidden" name="stage_status" value="Rejected">
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('{{ __('Reject this payment?') }}')">
+                            <i class="bi bi-x-circle me-1"></i>{{ __('Reject Payment') }}
+                        </button>
+                    </form>
+                </div>
             </div>
             @endif
 
@@ -631,7 +707,7 @@
                                                accept=".pdf,.jpg,.jpeg,.png,.gif,.doc,.docx,.xls,.xlsx,.zip,.txt">
                                         <div class="form-text">{{ __('PDF, images, Word, Excel, ZIP — max 20 MB each.') }}</div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-12">
                                         <label class="form-label">{{ __('Stage') }}</label>
                                         <select name="stage" class="form-select form-select-sm">
                                             @foreach(\App\Services\WorkflowService::STAGES as $n => $cfg)
@@ -641,14 +717,8 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">{{ __('Visibility') }}</label>
-                                        <select name="visibility" class="form-select form-select-sm">
-                                            @foreach(\App\Models\StageAttachment::VISIBILITY as $k => $vcfg)
-                                                <option value="{{ $k }}">{{ $vcfg['label'] }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                                    {{-- Visibility is set automatically by the system --}}
+                                    <input type="hidden" name="visibility" value="employee">
                                 </div>
                             </div>
                             <div class="modal-footer border-0">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ServiceRequest;
+use App\Models\StageAttachment;
 use App\Models\User;
 use App\Notifications\AssignedToRequestNotification;
 use App\Services\WorkflowService;
@@ -68,6 +69,62 @@ class WorkflowController extends Controller
         $stage = WorkflowService::stage((int) $request->input('to_stage'));
 
         return back()->with('success', "Force moved to: {$stage['label']}");
+    }
+
+    public function confirmPayment(Request $request, ServiceRequest $serviceRequest)
+    {
+        $user = auth()->user();
+
+        // Only the request owner at stage 4 can confirm payment
+        if ($serviceRequest->user_id !== $user->id || $serviceRequest->current_stage !== 4) {
+            abort(403, 'You cannot perform this action.');
+        }
+        if ($serviceRequest->is_rejected) {
+            abort(403, 'This request has been rejected.');
+        }
+
+        $request->validate([
+            'receipt' => 'required|file|mimes:jpg,jpeg,png,pdf|max:20480',
+        ], [
+            'receipt.required' => 'Please upload your payment receipt.',
+            'receipt.mimes'    => 'Receipt must be a JPG, PNG, or PDF file.',
+            'receipt.max'      => 'Receipt file must not exceed 20 MB.',
+        ]);
+
+        $file = $request->file('receipt');
+        $path = $file->store("stage-attachments/{$serviceRequest->id}", 'public');
+
+        StageAttachment::create([
+            'service_request_id' => $serviceRequest->id,
+            'stage'              => 4,
+            'uploaded_by'        => $user->id,
+            'file_path'          => $path,
+            'original_name'      => $file->getClientOriginalName(),
+            'mime_type'          => $file->getMimeType(),
+            'size'               => $file->getSize(),
+            'visibility'         => 'admin',
+        ]);
+
+        WorkflowService::updateStatus($serviceRequest, $user, 'Awaiting Payment');
+
+        return back()->with('success', 'Payment receipt submitted. Awaiting review by our team.');
+    }
+
+    public function approvePayment(Request $request, ServiceRequest $serviceRequest)
+    {
+        $user = auth()->user();
+
+        if (! $user->hasPermission('transition_stage') && ! $user->hasPermission('update_status') && ! $user->hasPermission('force_transition')) {
+            abort(403);
+        }
+
+        if ($serviceRequest->current_stage !== 4 || $serviceRequest->stage_status !== 'Awaiting Payment') {
+            return back()->with('error', 'Payment cannot be approved at this stage.');
+        }
+
+        WorkflowService::updateStatus($serviceRequest, $user, 'Paid', $request->input('notes'));
+
+        return back()->with('success', 'Payment approved. Status set to Paid.');
     }
 
     public function assign(Request $request, ServiceRequest $serviceRequest)

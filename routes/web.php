@@ -18,6 +18,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/terms', function () {
+    return view('terms');
+})->name('terms');
+
 // Language switcher
 Route::get('/lang/{locale}', function (string $locale) {
     if (in_array($locale, ['en', 'ar'])) {
@@ -143,11 +147,13 @@ Route::middleware('auth')->group(function () {
     Route::prefix('service-requests/{service_request}/workflow')
         ->name('workflow.')
         ->group(function () {
-            Route::post('advance',     [WorkflowController::class, 'advance'])         ->name('advance')     ->middleware('permission:transition_stage');
-            Route::post('return',      [WorkflowController::class, 'returnStage'])     ->name('return')      ->middleware('permission:transition_stage');
-            Route::post('status',      [WorkflowController::class, 'updateStatus'])    ->name('status');     // permission checked inside (client + staff)
-            Route::post('force',       [WorkflowController::class, 'forceTransition']) ->name('force')       ->middleware('permission:force_transition');
-            Route::post('assign',      [WorkflowController::class, 'assign'])          ->name('assign')      ->middleware('permission:manage_assignments');
+            Route::post('advance',          [WorkflowController::class, 'advance'])          ->name('advance')          ->middleware('permission:transition_stage');
+            Route::post('return',           [WorkflowController::class, 'returnStage'])      ->name('return')           ->middleware('permission:transition_stage');
+            Route::post('status',           [WorkflowController::class, 'updateStatus'])     ->name('status');          // permission checked inside (client + staff)
+            Route::post('force',            [WorkflowController::class, 'forceTransition'])  ->name('force')            ->middleware('permission:force_transition');
+            Route::post('assign',           [WorkflowController::class, 'assign'])           ->name('assign')           ->middleware('permission:manage_assignments');
+            Route::post('confirm-payment',  [WorkflowController::class, 'confirmPayment'])   ->name('confirm-payment'); // client uploads receipt
+            Route::post('approve-payment',  [WorkflowController::class, 'approvePayment'])   ->name('approve-payment'); // staff approves payment
         });
 
     // ── Stage Comments ────────────────────────────────────
