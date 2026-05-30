@@ -115,9 +115,9 @@
                         </span>
                     @else
                         <span class="badge bg-{{ $currentCfg['color'] }} px-3 py-2 fs-6">
-                            <i class="bi {{ $currentCfg['icon'] }} me-1"></i>{{ $currentCfg['label'] }}
+                            <i class="bi {{ $currentCfg['icon'] }} me-1"></i>{{ __($currentCfg['label']) }}
                         </span>
-                        <span class="badge bg-light text-dark border">{{ $stageStatus }}</span>
+                        <span class="badge bg-light text-dark border">{{ __($stageStatus) }}</span>
                     @endif
                     @if($serviceRequest->serviceType->name !== '—')
                         <span class="badge bg-light text-dark border">
@@ -865,8 +865,8 @@
                         <i class="bi {{ $currentCfg['icon'] }}"></i>
                     </div>
                     <div>
-                        <div class="fw-bold">{{ $currentCfg['label'] }}</div>
-                        <div class="small text-muted">{{ $stageStatus }}</div>
+                        <div class="fw-bold">{{ __($currentCfg['label']) }}</div>
+                        <div class="small text-muted">{{ __($stageStatus) }}</div>
                         @if($serviceRequest->stage_entered_at)
                         <div class="text-muted" style="font-size:.72rem">
                             <i class="bi bi-clock me-1"></i>{{ $serviceRequest->stageDaysElapsed() }} {{ __('day(s) in this stage') }}
@@ -989,7 +989,7 @@
                         </div>
                         <div class="col-6">
                             <div class="text-muted" style="font-size:.7rem;text-transform:uppercase">{{ __('Request Status') }}</div>
-                            <span class="badge {{ $badgeClass }} small">{{ $badgeLabel }}</span>
+                            <span class="badge {{ $badgeClass }} small">{{ __($badgeLabel) }}</span>
                         </div>
                     </div>
 

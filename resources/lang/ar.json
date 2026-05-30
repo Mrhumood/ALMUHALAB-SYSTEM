@@ -598,5 +598,60 @@
     "CSV": "إكسل",
     "Print": "طباعة",
     "Export CSV": "تصدير إكسل",
-    "Print / PDF": "طباعة / PDF"
+    "Print / PDF": "طباعة / PDF",
+
+    "TITLE / DETAILS": "العنوان / التفاصيل",
+    "PEOPLE": "الأشخاص",
+
+    "Update Stage Status": "تحديث حالة المرحلة",
+    "Confirm Payment": "تأكيد الدفع",
+    "Submit Receipt": "إرسال الإيصال",
+    "Payment Receipt": "إيصال الدفع",
+    "Payment Receipt Submitted": "تم تقديم إيصال الدفع",
+    "Our team is reviewing your payment. You will be notified once approved.": "فريقنا يراجع دفعتك. ستُبلّغ بمجرد الموافقة.",
+    "Please review the prepared itinerary and confirm your payment by uploading a payment receipt.": "يرجى مراجعة البرنامج المُعدّ وتأكيد دفعتك عبر رفع إيصال الدفع.",
+    "Upload a photo or PDF of your payment receipt. Our team will review it and confirm your payment.": "ارفع صورة أو PDF لإيصال الدفع. سيراجعه فريقنا ويؤكد دفعتك.",
+    "JPG, PNG or PDF — max 20 MB.": "JPG، PNG أو PDF — الحد الأقصى 20 ميغا.",
+    "After submission, your payment status will remain pending until our team reviews the receipt.": "بعد الإرسال، ستبقى حالة دفعتك معلّقة حتى يراجع فريقنا الإيصال.",
+    "Approve Payment": "الموافقة على الدفع",
+    "Approve the payment and mark as Paid?": "الموافقة على الدفع وتعليمه كمدفوع؟",
+    "Reject Payment": "رفض الدفع",
+    "Reject this payment?": "رفض هذه الدفعة؟",
+    "Payment Pending Review": "الدفع في انتظار المراجعة",
+    "The client has submitted a payment receipt. Please review the receipt in the Attachments section below, then approve or reject.": "قدّم العميل إيصال دفع. يرجى مراجعته في قسم المرفقات أدناه ثم الموافقة أو الرفض.",
+
+    "Max 20 MB per file.": "الحد الأقصى 20 ميغابايت لكل ملف.",
+    "Add More Attachments": "إضافة مرفقات إضافية",
+    "Showing :first–:last of :total users": "عرض :first–:last من أصل :total مستخدم",
+    "WhatsApp": "واتساب",
+    "Notification Preferences": "تفضيلات الإشعارات",
+    "Minimum 8 characters": "8 أحرف على الأقل",
+    "leave blank to keep current": "اتركه فارغاً للإبقاء على الحالي",
+
+    "Showing filtered results": "عرض النتائج المصفّاة",
+    "All active requests": "جميع الطلبات النشطة",
+    "No results match your filters": "لا توجد نتائج تطابق الفلاتر",
+    "Try adjusting your search or": "جرّب تعديل بحثك أو",
+    "clear all filters": "مسح جميع الفلاتر",
+
+    "Edit Timeline Step": "تعديل خطوة المسار الزمني",
+    "Step Completion": "اكتمال الخطوة",
+    "Mark as Complete": "تعليم كمكتملة",
+    "Mark as Incomplete": "تعليم كغير مكتملة",
+    "Visible to client": "مرئي للعميل",
+
+    "Request Rejected": "الطلب مرفوض",
+    "Request Closed": "الطلب مغلق",
+    "Admin Override Active": "تجاوز المسؤول نشط",
+    "Submitted": "تاريخ التقديم",
+
+    "Advance to": "الانتقال إلى",
+    "Return to": "العودة إلى",
+    "Force Reopen": "إعادة فتح إجباري",
+    "Force Move": "نقل إجباري",
+
+    "Name": "الاسم",
+    "Phone": "الهاتف",
+    "Depart": "المغادرة",
+    "Return": "العودة"
 }

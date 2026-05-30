@@ -134,7 +134,7 @@
                     <i class="bi bi-x-circle me-1"></i>{{ __('Clear Filters') }}
                 </a>
                 <span class="text-muted small align-self-center ms-1">
-                    {{ $items->total() }} {{ Str::plural('result', $items->total()) }} found
+                    {{ $items->total() }} {{ __('results found') }}
                 </span>
             @endif
             <div class="ms-auto d-flex gap-1">
@@ -300,7 +300,7 @@
                 @if($items->hasPages())
                     {{ __('Showing') }} {{ $items->firstItem() }}–{{ $items->lastItem() }} {{ __('of') }} {{ $items->total() }} {{ __('requests') }}
                 @else
-                    {{ $items->total() }} {{ Str::plural('request', $items->total()) }}
+                    {{ $items->total() }} {{ __('requests') }}
                 @endif
             </div>
             @if($items->hasPages())
